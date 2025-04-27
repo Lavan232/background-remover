@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Background Remover</title>
+  <style>
+    :root {
+      --github-dark: #0d1117;
+      --github-dark-secondary: #161b22;
+      --github-border: #30363d;
+      --github-text: #c9d1d9;
+      --github-blue: #58a6ff;
+      --github-green: #238636;
+      --github-btn-hover: #2ea043;
+    }
+    
+    body {
+      background-color: var(--github-dark);
+      color: var(--github-text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    h1 {
+      color: var(--github-text);
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--github-border);
+      padding-bottom: 0.5rem;
+    }
+    
+    h2 {
+      color: var(--github-text);
+      font-size: 1.5rem;
+      margin: 1.5rem 0 1rem;
+    }
+    
+    input[type="file"] {
+      display: none;
+    }
+    
+    .file-upload {
+      background-color: var(--github-dark-secondary);
+      border: 1px solid var(--github-border);
+      border-radius: 6px;
+      color: var(--github-text);
+      cursor: pointer;
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      margin: 10px 0;
+      transition: background-color 0.2s;
+    }
+    
+    .file-upload:hover {
+      background-color: var(--github-dark);
+      border-color: var(--github-blue);
+    }
+    
+    button {
+      background-color: var(--github-green);
+      border: 1px solid rgba(240, 246, 252, 0.1);
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      margin: 10px 0;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background-color: var(--github-btn-hover);
+      border-color: rgba(240, 246, 252, 0.1);
+    }
+    
+    img {
+      margin-top: 20px;
+      max-width: 90%;
+      border-radius: 6px;
+      border: 1px solid var(--github-border);
+      background-color: var(--github-dark-secondary);
+      padding: 10px;
+    }
+    
+    #downloadBtn {
+      display: none;
+      margin-top: 20px;
+      text-decoration: none;
+    }
+    
+    .container {
+      background-color: var(--github-dark-secondary);
+      border: 1px solid var(--github-border);
+      border-radius: 6px;
+      padding: 2rem;
+      margin-top: 1rem;
+    }
+    
+    .filename {
+      font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+      font-size: 0.9rem;
+      color: var(--github-blue);
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Background Remover</h1>
+  
+  <div class="container">
+    <label for="imageInput" class="file-upload">Choose an image</label>
+    <input type="file" id="imageInput" accept="image/*">
+    <div id="fileName" class="filename"></div>
+    
+    <button onclick="removeBackground()">Remove Background</button>
+    
+    <h2>Result:</h2>
+    <img id="outputImage" src="" alt="Output Image">
+    <a id="downloadBtn" href="#" download="no-background.png">
+      <button>Download Image</button>
+    </a>
+  </div>
+
+  <script>
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+      const fileName = document.getElementById('fileName');
+      if (this.files.length > 0) {
+        fileName.textContent = this.files[0].name;
+      } else {
+        fileName.textContent = '';
+      }
+    });
+
+    async function removeBackground() {
+      const input = document.getElementById('imageInput');
+      if (input.files.length === 0) {
+        alert('Please upload an image first.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image_file', input.files[0]);
+      formData.append('size', 'auto');
+
+      try {
+        const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+          method: 'POST',
+          headers: {
+            'X-Api-Key': 'QTUbJeMkCccPzwa4vVf9dQu2',
+          },
+          body: formData
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const imageUrl = URL.createObjectURL(blob);
+
+          const output = document.getElementById('outputImage');
+          output.src = imageUrl;
+
+          const downloadBtn = document.getElementById('downloadBtn');
+          downloadBtn.href = imageUrl;
+          downloadBtn.style.display = 'inline-block';
+        } else {
+          const error = await response.text();
+          throw new Error(error || 'Failed to remove background');
+        }
+      } catch (error) {
+        alert('Error: ' + error.message);
+        console.error(error);
+      }
+    }
+  </script>
+
+</body>
+</html>
